@@ -47,15 +47,15 @@
         isEmpty: null, // 刮票信息 产品类型 HPS\NDM\MFL\YSM
         isShowPage: false,
 				img_w: 0, // 刮奖图片和容器的宽度
-				isPoinet: false, // 优化手指图片没有了还可以刮奖问题
+        isPoinet: false, // 优化手指图片没有了还可以刮奖问题
+        devicePixelRatio: "",
       }
     },
     mounted() {
       this.$nextTick(() => {
         this.canvas = document.getElementById('mfl');
-				this.img_w = document.documentElement.clientWidth - 120;
-        // this.bgCvs = document.getElementById('mfl-bg');
-        // this.initAudio();
+        this.img_w = document.documentElement.clientWidth - 120;
+        this.devicePixelRatio = window.devicePixelRatio;
         this.point = document.getElementById('point');
         this.point.size = (document.documentElement.clientWidth * 100 / 750) * 0.15;
         this.pointerConfig.max_x = document.documentElement.clientWidth - parseInt(getComputedStyle(this.point, null).width)/2;
@@ -78,13 +78,13 @@
     methods: {
       _initCanvas() {
 
-        this.canvas.width = document.documentElement.clientWidth;
-        // this.canvas.parentElement.style.height =
-        this.canvas.height = this.canvas.parentElement.clientHeight;
+        this.canvas.width = document.documentElement.clientWidth * this.devicePixelRatio;
+        this.canvas.height = this.canvas.parentElement.clientHeight * this.devicePixelRatio;
         this.$refs.produce.style.width = this.img_w + 'px';
-        // this.canvas.style.width = this.canvas.width/2 + "px";
-        // this.canvas.style.height = this.canvas.height/2 + "px";
+        this.canvas.style.width = document.documentElement.clientWidth + "px";
+        this.canvas.style.height = this.canvas.parentElement.clientHeight + "px";
         this.context = this.canvas.getContext('2d');
+        this.context.setTransform(this.devicePixelRatio, 0, 0, this.devicePixelRatio, 0, 0);
         let img = new Image();
         img.src = this.img.canvasImg;
         this.context.globalCompositeOperation = "source-over";
@@ -92,8 +92,8 @@
         this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
         this.context.fill();
         img.onload = () => {
-          let w = this.canvas.width;
-          let h = this.canvas.height;
+          let w = parseInt(this.canvas.style.width);
+          let h = parseInt(this.canvas.style.height);
           let img_x = (document.documentElement.clientWidth - parseInt(getComputedStyle(this.$refs.produce, null).width))/2;
           this.context.drawImage(img, 0, 0, img.width, img.height, img_x, 0, this.img_w, h);
           document.querySelector('.data-show').style.backgroundSize = `${this.img_w}px ${h}px`;
@@ -140,9 +140,6 @@
         if (e.changedTouches) {
           e = e.changedTouches[e.changedTouches.length - 1];
         }
-        // let oX = parseInt(getComputedStyle(this.canvas, null).left)-this.canvas.width/2;
-        // let oY = offset(this.canvas.parentElement, 'top');
-
         let oX = offset(this.canvas.parentElement, 'left');
         let oY = offset(this.canvas.parentElement, 'top');
         this.point.pageX = e.pageX - oX || 0;
@@ -156,14 +153,6 @@
         this.slashStop();
         this.context.closePath();
       },
-      // initAudio() {
-      //   this.audio = new Audio();
-      //   let type = checkAudio(this.audio);
-      //   if (!type) return;
-      //   let src = "../../../static/audio/slash."+type;
-      //   this.audio.src = src;
-      //   this.audio.loop = true;
-      // },
       initPointer() {
         this.canvas.parentElement.addEventListener('touchstart', (e) => {
           if (e.changedTouches) {

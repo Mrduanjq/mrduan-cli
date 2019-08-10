@@ -62,12 +62,13 @@
         isShowPage: false,
         isBonus: false,
 				isPoinet: false, // 优化手指图片没有了还可以刮奖问题
+        devicePixelRatio: "",
       }
     },
     mounted() {
       this.$nextTick(() => {
         this.canvas = document.getElementById('happy2');
-        // this.initAudio();
+        this.devicePixelRatio = window.devicePixelRatio;
         this.point = document.getElementById('point');
         this.point.size = (document.documentElement.clientWidth * 100 / 750) * 0.15;
         this.pointerConfig.max_x = document.documentElement.clientWidth - parseInt(getComputedStyle(this.point, null).width)/2;
@@ -89,9 +90,12 @@
 		},
     methods: {
       _initCanvas() {
-        this.canvas.width = document.documentElement.clientWidth;
-        this.canvas.height = this.canvas.parentElement.clientHeight;
+        this.canvas.width = document.documentElement.clientWidth * this.devicePixelRatio;
+        this.canvas.height = this.canvas.parentElement.clientHeight * this.devicePixelRatio;
+        this.canvas.style.width = document.documentElement.clientWidth + 'px';
+        this.canvas.style.height = this.canvas.parentElement.clientHeight + 'px';
         this.context = this.canvas.getContext('2d');
+        this.context.setTransform(this.devicePixelRatio, 0, 0, this.devicePixelRatio, 0, 0);
         let img = new Image();
         img.src = this.img.canvasImg;
         this.context.globalCompositeOperation = "source-over";
@@ -99,11 +103,9 @@
         this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
         this.context.fill();
         img.onload = () => {
-          let w = this.canvas.width;
-          let h = this.canvas.height;
-          let x = this.canvas.width/2-w/2;
-          let y = this.canvas.height/2-h/2;
-          this.context.drawImage(img, 0, 0, img.width, img.height, x, y, w, h);
+          let w = parseInt(this.canvas.style.width);
+          let h = parseInt(this.canvas.style.height);
+          this.context.drawImage(img, 0, 0, img.width, img.height, 0, 0, w, h);
           document.querySelector('.data-show').style.height = `${h}px`;
           this.context.globalCompositeOperation = 'destination-out';
           this.canvas.addEventListener('touchmove', this.move);

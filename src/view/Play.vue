@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="play-wrapper">
-    <component class="component-bg" v-if="hackReset" :is="scratch.scratch_key" :scratchData="scratch" :payout="isPayout" :isShow="flag" :mask="isClose"></component>
+    <component ref=canvas class="component-bg" v-if="hackReset" :is="scratch.scratch_key" :scratchData="scratch" :payout="isPayout" :isShow="flag" :mask="isClose"></component>
     <div class="footer">
       <div class="role" @click.stop="showScratchInfo">
         <img src="../../static/images/icon_info.png" alt="">
@@ -109,7 +109,6 @@
     data() {
       return{
         scratch: {},
-        hackReset: true,
         isPop: false,
         isWin: 'win',
         isInfo: false,
@@ -156,7 +155,7 @@
 		mounted() {
 			this.homebgyyStop();
 			this.slashbgyxStart();
-			this.slashbgyyStart(true);
+      this.slashbgyyStart(true);
 		},
 		watch: {
 			"btn.type": {
@@ -236,27 +235,20 @@
         this.disable = true; // 下一张或者购买时，不可以兑奖
         this.reset();
         if (type == 1) {
+          this.$router.replace({path: "/play", query: {id: this.btn.id, isHome: false}});
           this.getScratchData(this.btn.id);
-          this.hackReset = false;
-          this.$nextTick(() => {
-            this.hackReset = true;
-	          this.flag = false;
-            // this.disable = false;
-          })
+          this.flag = false;
           this.btn.type = 0;
         } else if (type == 2) {
           this.mask = layer.mask();
           this.btn.type = 0;
           this.isClose = false;
-          this.hackReset = false;
-          this.$nextTick(() => {
-            this.hackReset = true;
-	          this.flag = false;
-          })
+          this.flag = false;
           buyGoods({id: this.btn.id}).then(res => {
             if (res.status.code === SUCCESS) {
               this.userInfo(res.data.balance);
               this.btn.id = res.data.id;
+              this.$router.replace({path: "/play", query: {id: this.btn.id, isHome: false}});
               this.getScratchData(res.data.id);
               layer.close(this.mask);
               this.isClose = true;
